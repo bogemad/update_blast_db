@@ -136,18 +136,20 @@ def download_archive_retry_if_fail(filename, outdir, archive_num, database, i):
 def download_archive_retry_if_fail2(url, outdir):
     retries = 0
     filename = os.path.basename(url)
+    filepath = os.path.join(outdir, filename)
     while True:
-        if not os.path.isfile(os.path.join(outdir, filename)):
+        if not os.path.isfile(filepath):
             try:
                 download_file(filename, outdir)
             except Exception as e:
                 logging.error(f"Download of {filename} failed: {e}")
-                os.remove(filename)
+                if os.path.isfile(filepath):
+                    os.remove(filepath)
                 retries = check_retries_num(retries)
                 continue
         else:
             logging.info(f"{filename} already downloaded, checking integrity...")
-        md5_local = calcmd5(os.path.join(outdir, filename))
+        md5_local = calcmd5(filepath)
         md5_remote_file = "{}.md5".format(filename)
         md5_remote_local_copy = os.path.join(outdir, md5_remote_file)
         try:
@@ -158,8 +160,10 @@ def download_archive_retry_if_fail2(url, outdir):
                 return True
             else:
                 logging.info(f"md5 check of {filename} failed. Deleting files and retrying download...")
-                os.remove(filename)
-                os.remove(md5_remote_local_copy)
+                if os.path.isfile(filepath):
+                    os.remove(filepath)
+                if os.path.isfile(md5_remote_local_copy):
+                    os.remove(md5_remote_local_copy)
                 retries = check_retries_num(retries)
         except Exception as e:
             logging.error(f"Download of {md5_remote_file} failed. Restarting process: {e}")
