@@ -11,7 +11,7 @@ def calcmd5(file):
     return hash_md5.hexdigest()
 
 def remote_file_exists(filename):
-    c = requests.head('https://ftp.ncbi.nih.gov/blast/db/{}'.format(filename), stream=True)
+    c = requests.head('https://ftp.ncbi.nih.gov/blast/db/{}'.format(filename), stream=True, timeout = 60)
     if c.status_code < 400:
         return True
     else:
@@ -19,7 +19,7 @@ def remote_file_exists(filename):
 
 def download_file(f, o):
     logging.info("Downloading {}...".format(f))
-    with requests.get('https://ftp.ncbi.nih.gov/blast/db/{}'.format(f), stream=True, allow_redirects=True) as r:
+    with requests.get('https://ftp.ncbi.nih.gov/blast/db/{}'.format(f), stream=True, allow_redirects=True, timeout = 1800) as r:
         r.raise_for_status()
         with open(os.path.join(o, f), 'wb') as h:
             # h.write(r.content)
